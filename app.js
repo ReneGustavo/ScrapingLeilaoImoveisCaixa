@@ -11,5 +11,5 @@ const ConsultaImoveis = new (require('./ConsultaImoveis'))();
         ]
     ])
     console.log("IMOVEIS")
-    console.log(imoveis)
+    console.log(JSON.stringify(imoveis))
 })();

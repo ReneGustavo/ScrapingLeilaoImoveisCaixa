@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer');
 const delay = require('delay');
+const urls = require('./urls.json');
 
 module.exports = class ConsultaImoveis {
     page
@@ -9,10 +10,10 @@ module.exports = class ConsultaImoveis {
     async consultar(states) {
         console.log("{ consultar }", states)
 
-        const browser = await puppeteer.launch({ headless: true });
+        const browser = await puppeteer.launch({ headless: false });
 
         this.page = await browser.newPage();
-        await this.page.goto('https://venda-imoveis.caixa.gov.br/sistema/busca-imovel.asp?sltTipoBusca=imoveis');
+        await this.page.goto(urls.paginaBuscaImoveis);
 
         let estados = []
 
@@ -39,48 +40,71 @@ module.exports = class ConsultaImoveis {
             }
         }
 
-        await browser.close();
+        //await browser.close();
 
         return estados
     }
 
     async capturarImoveisCidade(uf, cidade) {
-        let carregamentoBairros = await this.selecionarEstado(uf);
-        if (!carregamentoBairros) {
-            console.log(`ESTADO ${uf} INEXISTENTE`)
-            return false
+        try {
+            let carregamentoBairros = await this.selecionarEstado(uf);
+            if (!carregamentoBairros) {
+                console.log(`ESTADO ${uf} INEXISTENTE`)
+                return []
+            }
+
+            await this.aguardarRetornoRequisicao(urls.carregaListaCidades)
+            //await delay(2000);
+
+            let carregamentoCidades = await this.selecionarCidade(cidade);
+            if (!carregamentoCidades) {
+                console.log(`CIDADE ${cidade} INEXISTENTE`)
+                return []
+            }
+            await this.aguardarRetornoRequisicao(urls.carregaListaBairros)
+            //await delay(2000);
+
+            await this.marcarBairros();
+            //await delay(2000);
+
+            await this.page.evaluate(() => { $("#btn_next0").click() });
+
+            await this.page.evaluate(() => {
+                $(`#cmb_tp_imovel`).val($("#cmb_tp_imovel option:contains('Indiferente')").val());
+                $(`#cmb_quartos`).val($("#cmb_quartos option:contains('Indiferente')").val());
+                $(`#cmb_vg_garagem`).val($("#cmb_vg_garagem option:contains('Indiferente')").val());
+                $(`#cmb_vg_garagem`).val($("#cmb_vg_garagem option:contains('Indiferente')").val());
+                $(`#cmb_faixa_vlr`).val($("#cmb_faixa_vlr option:contains('Indiferente')").val());
+            });
+
+            await this.page.evaluate(() => { $("#btn_next1").click() });
+
+            await this.aguardarRetornoRequisicao(urls.carregaListaImoveis)
+            console.log("PASSOU")
+            await delay(500)
+
+            let imoveis = await this.capturarImoveis()
+
+            //console.log(`IMOVEIS ${uf} ${cidade}`, imoveis)
+
+            return imoveis
+        } catch (err) {
+            return []
         }
-        await delay(2000);
+    }
 
-        let carregamentoCidades = await this.selecionarCidade(cidade);
-        if (!carregamentoCidades) {
-            console.log(`CIDADE ${cidade} INEXISTENTE`)
-            return false
-        }
-        await delay(2000);
-
-        await this.marcarBairros();
-        await delay(2000);
-
-        await this.page.evaluate(() => { $("#btn_next0").click() });
-
-        await this.page.evaluate(() => {
-            $(`#cmb_tp_imovel`).val($("#cmb_tp_imovel option:contains('Indiferente')").val());
-            $(`#cmb_quartos`).val($("#cmb_quartos option:contains('Indiferente')").val());
-            $(`#cmb_vg_garagem`).val($("#cmb_vg_garagem option:contains('Indiferente')").val());
-            $(`#cmb_vg_garagem`).val($("#cmb_vg_garagem option:contains('Indiferente')").val());
-            $(`#cmb_faixa_vlr`).val($("#cmb_faixa_vlr option:contains('Indiferente')").val());
-        });
-
-        await this.page.evaluate(() => { $("#btn_next1").click() });
-
-        await delay(3000)
-
-        let imoveis = await this.capturarImoveis()
-
-        //console.log(`IMOVEIS ${uf} ${cidade}`, imoveis)
-
-        return imoveis
+    async aguardarRetornoRequisicao(url) {
+        return new Promise((resolve, reject) => {
+            this.page.on('response', function logRequest(interceptedRequest) {
+                if (interceptedRequest.url() == url) {
+                    //console.log('RESPOSTA DE', interceptedRequest.url(), interceptedRequest.status());
+                    if (interceptedRequest.status() == 200)
+                        resolve(true)
+                    else
+                        reject(interceptedRequest.status())
+                }
+            });
+        })
     }
 
     async selecionarEstado(uf) {
