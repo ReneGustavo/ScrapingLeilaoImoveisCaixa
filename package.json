@@ -1,0 +1,16 @@
+{
+  "name": "imoveis-leilao-caixa",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "delay": "^4.4.0",
+    "puppeteer": "^5.5.0"
+  }
+}
