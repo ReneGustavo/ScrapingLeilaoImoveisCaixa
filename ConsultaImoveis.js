@@ -10,7 +10,7 @@ module.exports = class ConsultaImoveis {
     async consultar(states) {
         console.log("{ consultar }", states)
 
-        const browser = await puppeteer.launch({ headless: false });
+        const browser = await puppeteer.launch({ headless: true });
 
         this.page = await browser.newPage();
         await this.page.goto(urls.paginaBuscaImoveis);
@@ -40,7 +40,7 @@ module.exports = class ConsultaImoveis {
             }
         }
 
-        //await browser.close();
+        await browser.close();
 
         return estados
     }
