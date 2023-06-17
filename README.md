@@ -18,6 +18,11 @@ npm install
 
 ```sh
 npm start
+
+or
+
+// Execute the command to interact with the pagination and capture a screenshot or each page.
+npm run start-screenshot
 ```
 
 ## Author

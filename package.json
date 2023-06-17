@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "start-screenshot": "node screenshot.js RS \"PORTO ALEGRE\" true"
   },
   "keywords": [],
   "author": "",
