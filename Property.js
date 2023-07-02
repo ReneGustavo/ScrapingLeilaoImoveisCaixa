@@ -19,14 +19,14 @@ module.exports = class Property {
         }
     }
 
-    async fetch(state, city, isHeadless) {
+    async fetch(state, city, isHeadless, valueRange) {
         try {
             const browser = await puppeteer.launch({ headless: isHeadless });
 
             this.page = await browser.newPage();
 
             await this.page.goto(urls.paginaBuscaImoveis);
-            await this.setupAndFetchProperties(state, city)
+            await this.setupAndFetchProperties(state, city, valueRange)
 
             await browser.close();
         } catch (error) {
@@ -34,7 +34,7 @@ module.exports = class Property {
         }
     }
 
-    async setupAndFetchProperties(uf, cidade) {
+    async setupAndFetchProperties(uf, cidade, valueRange) {
         try {
             let carregamentoBairros = await this.selectStates(uf);
             if (!carregamentoBairros) {
@@ -54,9 +54,14 @@ module.exports = class Property {
             console.log(`Step 1(Opções) done, waiting to load next step`)
             this.page.click("#btn_next0")
 
+
             await delay(30)
+
             console.log(`Step 2(Dados Imóvel) done, waiting to load next step`)
+            await this.selectValueRange(valueRange)
             await this.clickAndWait(urls.carregaListaImoveis, "#btn_next1")
+
+
 
             console.log(`Start fetching pagination results`)
             let imoveis = await this.fetchProperties(uf, cidade)
@@ -109,6 +114,21 @@ module.exports = class Property {
             carregaListaBairros()
             return true
         }, cidade);
+    }
+
+    /*
+      1 - Até R$100.000,00
+      2 - De R$100.000,01 até R$200.000,00
+      3 - De R$200.000,01 até R$400.000,004
+      4 - De R$400.000,01 até R$750.000,00
+      5 Acima de R$750.000,00
+    */
+      async selectValueRange(range) {
+        console.log(`Value range: ${range}`)
+        return await this.page.evaluate((range) => {
+            $(`#cmb_faixa_vlr`).val($(`#cmb_faixa_vlr option:contains('${range}')`).val());
+            return true
+        }, range);
     }
 
     async fetchProperties(uf, cidade) {
