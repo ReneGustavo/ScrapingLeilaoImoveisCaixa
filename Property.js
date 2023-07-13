@@ -59,6 +59,7 @@ module.exports = class Property {
 
             console.log(`Step 2(Dados Imóvel) done, waiting to load next step`)
             await this.selectValueRange(valueRange)
+            await this.takeScreenShotWithDelayDefault("a_prove")
             await this.clickAndWait(urls.carregaListaImoveis, "#btn_next1")
 
 
@@ -125,10 +126,7 @@ module.exports = class Property {
     */
       async selectValueRange(range) {
         console.log(`Value range: ${range}`)
-        return await this.page.evaluate((range) => {
-            $(`#cmb_faixa_vlr`).val($(`#cmb_faixa_vlr option:contains('${range}')`).val());
-            return true
-        }, range);
+        this.page.select('#cmb_faixa_vlr', range)
     }
 
     async fetchProperties(uf, cidade) {
@@ -151,5 +149,11 @@ module.exports = class Property {
         await delay(1000);
         await this.page.screenshot({ path: `./photos/${uf}_${cidade}_page_${index}.png`, fullPage: true });
         console.log(`ScreenShot of page ${index} done.`)
+    }
+
+    async takeScreenShotWithDelayDefault(fileName) {
+        await delay(1000);
+        await this.page.screenshot({ path: `./photos/${fileName}.png`, fullPage: true });
+        console.log(`ScreenShot of page done.`)
     }
 }

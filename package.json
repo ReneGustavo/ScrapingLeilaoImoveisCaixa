@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "start-screenshot": "node screenshot.js RS \"PORTO ALEGRE\" true 1"
+    "start-screenshot": "node screenshot.js RS \"PORTO ALEGRE\" false 4"
   },
   "keywords": [],
   "author": "",
