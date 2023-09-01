@@ -12,7 +12,7 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/screenshot.js",
-            "args": ["RS", "PORTO ALEGRE", "true", "1"]
+            "args": ["RS", "PORTO ALEGRE", "4"]
         }
     ]
 }

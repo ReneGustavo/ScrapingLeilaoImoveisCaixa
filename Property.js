@@ -8,6 +8,8 @@ const delay = require('delay');
 const urls = require('./urls.json');
 var fs = require('fs');
 const { Console } = require('console');
+const fsp = require('fs/promises');
+const path = require('path');
 var dir = './photos';
 
 
@@ -18,13 +20,34 @@ module.exports = class Property {
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir);
         }
+
+        this.deleteAllFilesInDir(dir).then(() => {
+            console.log('Removed all files from the specified directory');
+        });
+    
     }
 
-    async fetch(state, city, isHeadless, valueRange) {
+    async deleteAllFilesInDir(dirPath) {
         try {
-            const browser = await puppeteer.launch({ headless: isHeadless });
+          const files = await fsp.readdir(dirPath);
+      
+          const deleteFilePromises = files.map(file =>
+            fsp.unlink(path.join(dirPath, file)),
+          );
+      
+          await Promise.all(deleteFilePromises);
+        } catch (err) {
+          console.log(err);
+        }
+      }
+      
+      
+    async fetch(state, city, valueRange) {
+        try {
+            const browser = await puppeteer.launch({ headless: true });
 
             this.page = await browser.newPage();
+            await this.page.setViewport({ width: 1866, height: 768});
 
             await this.page.goto(urls.paginaBuscaImoveis);
             await this.setupAndFetchProperties(state, city, valueRange)
@@ -81,7 +104,6 @@ module.exports = class Property {
             return response.url() === url;
         }, { timeout: 100000 });
 
-        console.log(`Done!`)
     }
 
     async waitRequestResponse(url) {
@@ -135,7 +157,7 @@ module.exports = class Property {
         // screenshot of the first page
         await this.takeScreenShotFullPage(`${uf}_${cidade}_page_1`);
 
-        await this.fetchPropertiesDetail()
+        await this.fetchPropertiesDetail(uf, cidade, 1)
 
         // interact on all pages
         let pagination = await this.page.$$(`#paginacao a`)
@@ -146,31 +168,31 @@ module.exports = class Property {
                 return response.url() === urls.carregaListaImoveis;
             });
 
-            //Fetch imovel IDs
-            // for each id evaluate the method s
-            // detalhe_imovel() to go to 
-            // Retornar to return 
-
-            await this.fetchPropertiesDetail()
-
             await this.takeScreenShotFullPage(`${uf}_${cidade}_page_${i}`);
-            
+            await this.fetchPropertiesDetail(uf, cidade, i)            
         }
 
     }
 
-    async fetchPropertiesDetail(){
-        let propertiesIds = await this.getPropertiesIds()
-        await propertiesIds.forEach(async (propertyId) => {
-            Console.log(`propertyId: ${propertyId}`)
-            await goToDetails(propertyId)
-            await takeScreenShot(`${uf}_${cidade}_page_${propertyId}`)
-            await returnToPropertyList()
-        });
+    async fetchPropertiesDetail(uf, cidade, page){
+        const skipProperties = ['00000010007162', '00000010007140']
+        let propertiesIds = await this.getPropertiesIds(page)
+        
+        console.log(`Properties count: ${propertiesIds.length}`)
+        for (let i = 0; i < propertiesIds.length; i++) {
+            if(skipProperties.includes(propertiesIds[i])){
+                console.log(`Property ${propertiesIds[i]} skipped`)
+                continue;
+            }
+            await this.goToDetails(propertiesIds[i])
+            await this.takeScreenShot(`${uf}_${cidade}_property_${page}_${i}_${propertiesIds[i]}`)
+            await this.returnToPropertyList()
+        }
     }
 
-    async getPropertiesIds(){
-        return await this.page.$$(`document.querySelector("#hdnImov1").getAttribute("value").split("||")`)
+    async getPropertiesIds(page){
+        let val =  await await this.page.$eval(`#hdnImov${page}`, element=> element.getAttribute("value"))
+        return val.split("||")
     }
 
     async goToDetails(propertyId){
@@ -178,7 +200,6 @@ module.exports = class Property {
         await this.page.waitForResponse(response => {
             return response.url() === urls.detalheImovel;
         });
-
     }
 
     async returnToPropertyList(){
@@ -191,7 +212,7 @@ module.exports = class Property {
     async takeScreenShotFullPage(fileName) {
         await delay(1000);
         await this.page.screenshot({ path: `./photos/${fileName}.png`, fullPage: true });
-        console.log(`ScreenShot of page done ${fileName}.`)
+        console.log(`ScreenShot of page ${fileName}.`)
     }
 
     async takeScreenShot(fileName) {
