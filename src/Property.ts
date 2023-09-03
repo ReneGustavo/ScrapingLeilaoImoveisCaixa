@@ -2,21 +2,27 @@
  Execute the script to capture a screenshot of each page including all properties
  @author:guimalfatti76@gmail.com
 */
-
-const puppeteer = require('puppeteer');
+import * as puppeteer from "puppeteer";
 const delay = require('delay');
 const urls = require('./urls.json');
-var fs = require('fs');
-const { Console } = require('console');
-const fsp = require('fs/promises');
-const path = require('path');
-var dir = './photos';
+import * as fs from 'fs';
+import * as fsp from 'fs/promises';
+import * as path from "path"
+
+let dir: string = "./photos"; 
 
 
-module.exports = class Property {
-    page
+export class Property {
+    page: puppeteer.Page = new puppeteer.Page;
+    state: string
+    city: string
+    valueRange: string
 
-    constructor() { 
+    constructor(state: string, city: string, valueRange: string) { 
+        this.state = state
+        this.city = city
+        this.valueRange = valueRange
+
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir);
         }
@@ -27,7 +33,7 @@ module.exports = class Property {
     
     }
 
-    async deleteAllFilesInDir(dirPath) {
+    async deleteAllFilesInDir(dirPath: string) {
         try {
           const files = await fsp.readdir(dirPath);
       
@@ -42,7 +48,7 @@ module.exports = class Property {
       }
       
       
-    async fetch(state, city, valueRange) {
+    async fetch() {
         try {
             const browser = await puppeteer.launch({ headless: true });
 
@@ -51,7 +57,7 @@ module.exports = class Property {
             this.page.setDefaultTimeout(0)
 
             await this.page.goto(urls.paginaBuscaImoveis);
-            await this.setupAndFetchProperties(state, city, valueRange)
+            await this.setupAndFetchProperties(this.state, this.city, this.valueRange)
 
             await browser.close();
         } catch (error) {
@@ -59,7 +65,7 @@ module.exports = class Property {
         }
     }
 
-    async setupAndFetchProperties(uf, cidade, valueRange) {
+    async setupAndFetchProperties(uf: string, cidade: string, valueRange: string) {
         try {
             let carregamentoBairros = await this.selectStates(uf);
             if (!carregamentoBairros) {
@@ -97,7 +103,7 @@ module.exports = class Property {
         }
     }
 
-    async clickAndWait(url, identifier) {
+    async clickAndWait(url: string, identifier: string) {
         this.page.click(identifier)
         await this.page.waitForResponse(response => {
             return response.url() === url;
@@ -105,7 +111,7 @@ module.exports = class Property {
         await this.page.waitForNetworkIdle({ idleTime: 250 })
     }
 
-    async waitRequestResponse(url) {
+    async waitRequestResponse(url: string) {
         return new Promise((resolve, reject) => {
             this.page.on('response', function logRequest(interceptedRequest) {
                 if (interceptedRequest.url() == url) {
@@ -118,7 +124,7 @@ module.exports = class Property {
         })
     }
 
-    async selectStates(uf) {
+    async selectStates(uf: string) {
         console.log(`State: ${uf}`)
         return await this.page.evaluate((uf) => {
             if ($(`#cmb_estado option[value='${uf}']`).length == 0)
@@ -129,7 +135,7 @@ module.exports = class Property {
         }, uf);
     }
 
-    async selectCity(cidade) {
+    async selectCity(cidade: string) {
         console.log(`City: ${cidade}`)
         return await this.page.evaluate((cidade) => {
             if ($(`#cmb_cidade option:contains('${cidade}')`).length == 0)
@@ -147,12 +153,13 @@ module.exports = class Property {
       4 - De R$400.000,01 até R$750.000,00
       5 Acima de R$750.000,00
     */
-    async selectValueRange(range) {
+    async selectValueRange(range: string) {
         console.log(`Value range: ${range}`)
         this.page.select('#cmb_faixa_vlr', range)
     }
 
-    async fetchProperties(uf, cidade) {
+    //todo make it a class proeprty
+    async fetchProperties(uf: string, cidade: string) {
         // screenshot of the first page
         await this.takeScreenShotFullPage(`${uf}_${cidade}_page_1`);
 
@@ -174,8 +181,13 @@ module.exports = class Property {
 
     }
 
-    async fetchPropertiesDetail(uf, cidade, page){
+    async fetchPropertiesDetail(uf: string, cidade: string, page: number){
         let propertiesIds = await this.getPropertiesIds(page)
+
+        if(propertiesIds == null){
+            console.error("no properties IDs found.")
+            return;
+        }
         
         console.log(`Properties count: ${propertiesIds.length}`)
         for (let i = 0; i < propertiesIds.length; i++) {
@@ -185,12 +197,12 @@ module.exports = class Property {
         }
     }
 
-    async getPropertiesIds(page){
+    async getPropertiesIds(page: number){
         let val =  await await this.page.$eval(`#hdnImov${page}`, element=> element.getAttribute("value"))
-        return val.split("||")
+        return val?.split("||")
     }
 
-    async goToDetails(propertyId){
+    async goToDetails(propertyId: number){
         await this.page.evaluate(`detalhe_imovel(${propertyId})`)
         
         await this.page.waitForResponse(response => {
@@ -206,13 +218,13 @@ module.exports = class Property {
         }, {timeout: 0});
     }
 
-    async takeScreenShotFullPage(fileName) {
+    async takeScreenShotFullPage(fileName: string) {
         await delay(500);
         await this.page.screenshot({ path: `./photos/${fileName}.png`, fullPage: true });
         console.log(`ScreenShot of page ${fileName}.`)
     }
 
-    async takeScreenShot(fileName) {
+    async takeScreenShot(fileName: string) {
         await delay(500);
         await this.page.screenshot({ path: `./photos/${fileName}.png`});
         console.log(`ScreenShot ${fileName}.`)
