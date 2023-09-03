@@ -48,6 +48,7 @@ module.exports = class Property {
 
             this.page = await browser.newPage();
             await this.page.setViewport({ width: 1866, height: 768});
+            this.page.setDefaultTimeout(0)
 
             await this.page.goto(urls.paginaBuscaImoveis);
             await this.setupAndFetchProperties(state, city, valueRange)
@@ -86,15 +87,13 @@ module.exports = class Property {
             await this.takeScreenShotFullPage("a_prove")
             await this.clickAndWait(urls.carregaListaImoveis, "#btn_next1")
 
-
-
             // at this point page 1 is loaded
             console.log(`Start fetching pagination results`)
             let imoveis = await this.fetchProperties(uf, cidade)
 
             return imoveis
         } catch (err) {
-            console.error(err, "error:")
+            console.error(err)
         }
     }
 
@@ -103,7 +102,7 @@ module.exports = class Property {
         await this.page.waitForResponse(response => {
             return response.url() === url;
         }, { timeout: 100000 });
-
+        await this.page.waitForNetworkIdle({ idleTime: 250 })
     }
 
     async waitRequestResponse(url) {
@@ -164,6 +163,7 @@ module.exports = class Property {
         const secondPage = 2
         for (let i = secondPage; i <= pagination.length; i++) {
             this.page.click(`#paginacao a:nth-child(${i})`)
+
             await this.page.waitForResponse(response => {
                 return response.url() === urls.carregaListaImoveis;
             });
@@ -175,17 +175,12 @@ module.exports = class Property {
     }
 
     async fetchPropertiesDetail(uf, cidade, page){
-        const skipProperties = ['00000010007162', '00000010007140']
         let propertiesIds = await this.getPropertiesIds(page)
         
         console.log(`Properties count: ${propertiesIds.length}`)
         for (let i = 0; i < propertiesIds.length; i++) {
-            if(skipProperties.includes(propertiesIds[i])){
-                console.log(`Property ${propertiesIds[i]} skipped`)
-                continue;
-            }
-            await this.goToDetails(propertiesIds[i])
-            await this.takeScreenShot(`${uf}_${cidade}_property_${page}_${i}_${propertiesIds[i]}`)
+            await this.goToDetails(parseInt(propertiesIds[i]))
+            await this.takeScreenShot(`${uf}_${cidade}_property_${page}_${i}_${parseInt(propertiesIds[i])}`)
             await this.returnToPropertyList()
         }
     }
@@ -197,20 +192,22 @@ module.exports = class Property {
 
     async goToDetails(propertyId){
         await this.page.evaluate(`detalhe_imovel(${propertyId})`)
+        
         await this.page.waitForResponse(response => {
             return response.url() === urls.detalheImovel;
-        });
+        }, {timeout: 0});
     }
 
     async returnToPropertyList(){
         await this.page.evaluate('Retornar()')
+        
         await this.page.waitForResponse(response => {
             return response.url() === urls.carregaListaImoveis;
-        });
+        }, {timeout: 0});
     }
 
     async takeScreenShotFullPage(fileName) {
-        await delay(1000);
+        await delay(500);
         await this.page.screenshot({ path: `./photos/${fileName}.png`, fullPage: true });
         console.log(`ScreenShot of page ${fileName}.`)
     }
