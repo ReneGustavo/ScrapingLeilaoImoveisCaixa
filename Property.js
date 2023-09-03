@@ -84,7 +84,7 @@ module.exports = class Property {
 
             console.log(`Step 2(Dados Imóvel) done, waiting to load next step`)
             await this.selectValueRange(valueRange)
-            await this.takeScreenShotFullPage("a_prove")
+            //await this.takeScreenShotFullPage("a_prove")
             await this.clickAndWait(urls.carregaListaImoveis, "#btn_next1")
 
             // at this point page 1 is loaded
