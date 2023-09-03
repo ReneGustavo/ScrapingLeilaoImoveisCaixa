@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as fsp from 'fs/promises';
 import * as path from "path"
 
-let dir: string = "./photos"; 
+let root_dir: string = "./photos"; 
 
 
 export class Property {
@@ -17,17 +17,20 @@ export class Property {
     state: string
     city: string
     valueRange: string
+    fullDir: string
 
     constructor(state: string, city: string, valueRange: string) { 
         this.state = state
         this.city = city
         this.valueRange = valueRange
 
-        if (!fs.existsSync(dir)){
-            fs.mkdirSync(dir);
+        this.fullDir = `${root_dir}/${city.replace(" ", "_")}/range_${valueRange}`
+        if (!fs.existsSync(this.fullDir)){
+            fs.mkdirSync(this.fullDir, { recursive: true });
+            console.log(`folder created ${this.fullDir}`)
         }
 
-        this.deleteAllFilesInDir(dir).then(() => {
+        this.deleteAllFilesInDir(this.fullDir).then(() => {
             console.log('Removed all files from the specified directory');
         });
     
@@ -83,7 +86,7 @@ export class Property {
 
             console.log(`Step 2(Dados Imóvel) done, waiting to load next step`)
             await this.selectValueRange(valueRange)
-            await this.takeScreenShotFullPage("a_prove")
+            //await this.takeScreenShotFullPage("a_prove")
             await this.clickAndWait(urls.carregaListaImoveis, "#btn_next1")
 
             // at this point page 1 is loaded
@@ -179,7 +182,7 @@ export class Property {
         console.log(`Properties count: ${propertiesIds.length}`)
         for (let i = 0; i < propertiesIds.length; i++) {
             await this.goToDetails(parseInt(propertiesIds[i]))
-            await this.takeScreenShot(`${uf}_${cidade}_property_${page}_${i}_${parseInt(propertiesIds[i])}`)
+            await this.takeScreenShot(`property_${page}_${i}_${parseInt(propertiesIds[i])}`)
             await this.returnToPropertyList()
         }
     }
@@ -207,13 +210,13 @@ export class Property {
 
     async takeScreenShotFullPage(fileName: string) {
         await delay(500);
-        await this.page.screenshot({ path: `./photos/${fileName}.png`, fullPage: true });
+        await this.page.screenshot({ path: `${this.fullDir}/${fileName}.png`, fullPage: true });
         console.log(`ScreenShot of page ${fileName}.`)
     }
 
     async takeScreenShot(fileName: string) {
         await delay(500);
-        await this.page.screenshot({ path: `./photos/${fileName}.png`});
-        console.log(`ScreenShot ${fileName}.`)
+        await this.page.screenshot({ path: `${this.fullDir}/${fileName}.png`});
+        console.log(`${this.fullDir}/${fileName}.png`)
     }
 }
