@@ -4,7 +4,7 @@
 */
 import * as puppeteer from "puppeteer";
 const delay = require('delay');
-const urls = require('./urls.json');
+import * as urls from './urls.json';
 import * as fs from 'fs';
 import * as fsp from 'fs/promises';
 import * as path from "path"
@@ -67,19 +67,12 @@ export class Property {
 
     async setupAndFetchProperties(uf: string, cidade: string, valueRange: string) {
         try {
-            let carregamentoBairros = await this.selectStates(uf);
-            if (!carregamentoBairros) {
-                console.error(`state ${uf} does not exist`)
-                return []
-            }
+            await this.selectState(uf);
 
             await this.waitRequestResponse(urls.carregaListaCidades)
 
-            let carregamentoCidades = await this.selectCity(cidade);
-            if (!carregamentoCidades) {
-                console.error(`city ${cidade} does not exist`)
-                return []
-            }
+            await this.selectCity(cidade);
+            
             await this.waitRequestResponse(urls.carregaListaBairros)
 
             console.log(`Step 1(Opções) done, waiting to load next step`)
@@ -90,7 +83,7 @@ export class Property {
 
             console.log(`Step 2(Dados Imóvel) done, waiting to load next step`)
             await this.selectValueRange(valueRange)
-            //await this.takeScreenShotFullPage("a_prove")
+            await this.takeScreenShotFullPage("a_prove")
             await this.clickAndWait(urls.carregaListaImoveis, "#btn_next1")
 
             // at this point page 1 is loaded
@@ -124,26 +117,20 @@ export class Property {
         })
     }
 
-    async selectStates(uf: string) {
+    async selectState(uf: string) {
         console.log(`State: ${uf}`)
-        return await this.page.evaluate((uf) => {
-            if ($(`#cmb_estado option[value='${uf}']`).length == 0)
-                return false
-            $(`#cmb_estado`).val(`${uf}`);
-            selecionaEstado();
-            return true
-        }, uf);
+        await this.page.evaluate(`
+            $("#cmb_estado").val('${uf}');
+            selecionaEstado();`);
     }
 
     async selectCity(cidade: string) {
         console.log(`City: ${cidade}`)
-        return await this.page.evaluate((cidade) => {
-            if ($(`#cmb_cidade option:contains('${cidade}')`).length == 0)
-                return false
-            $(`#cmb_cidade`).val($(`#cmb_cidade option:contains('${cidade}')`).val());
-            carregaListaBairros()
-            return true
-        }, cidade);
+
+        return await this.page.evaluate(`
+            let city = $("#cmb_cidade option:contains('${cidade}')").val()
+            $('#cmb_cidade').val(city);
+            carregaListaBairros();`);
     }
 
     /*
