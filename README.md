@@ -44,3 +44,12 @@ Give a ⭐️ if this project helped you!
 
 ***
 _This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
+
+commands:
+npm run start_3
+npm run start_4
+npm run start_5
+
+npm run start_v_3
+npm run start_v_4
+npm run start_v_5

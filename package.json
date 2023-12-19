@@ -4,12 +4,12 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start_3": "tsc --outDir dist && cd dist && node main.js RS \"PORTO ALEGRE\" 3",
-    "start_4": "tsc --outDir dist && cd dist && node main.js RS \"PORTO ALEGRE\" 4",
-    "start_5": "tsc --outDir dist && cd dist && node main.js RS \"PORTO ALEGRE\" 5",
-    "start_v_3": "tsc --outDir dist && cd dist && node main.js RS \"VIAMAO\" 3",
-    "start_v_4": "tsc --outDir dist && cd dist && node main.js RS \"VIAMAO\" 4",
-    "start_v_5": "tsc --outDir dist && cd dist && node main.js RS \"VIAMAO\" 5"
+    "start_3": "tsc --outDir dist && node dist/main.js RS \"PORTO ALEGRE\" 3",
+    "start_4": "tsc --outDir dist && node dist/main.js RS \"PORTO ALEGRE\" 4",
+    "start_5": "tsc --outDir dist && node dist/main.js RS \"PORTO ALEGRE\" 5",
+    "start_v_3": "tsc --outDir dist && node dist/main.js RS \"VIAMAO\" 3",
+    "start_v_4": "tsc --outDir dist && node dist/main.js RS \"VIAMAO\" 4",
+    "start_v_5": "tsc --outDir dist && node dist/main.js RS \"VIAMAO\" 5"
   },
   "keywords": [],
   "author": "",
