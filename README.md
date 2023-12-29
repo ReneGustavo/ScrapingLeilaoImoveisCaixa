@@ -18,6 +18,11 @@ npm install
 
 ```sh
 npm start
+
+or
+
+// Execute the command to interact with the pagination and capture a screenshot or each page.
+npm run start-screenshot
 ```
 
 ## Author
@@ -28,9 +33,23 @@ npm start
 * Github: [@ReneGustavo](https://github.com/ReneGustavo)
 * LinkedIn: [@renegustavoceg](https://linkedin.com/in/renegustavoceg)
 
+
+👤 **Guilherme Malfatti**
+
+* LinkedIn: [@guilherme-malfatti](https://www.linkedin.com/in/guilherme-malfatti/)
+
 ## Show your support
 
 Give a ⭐️ if this project helped you!
 
 ***
 _This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
+
+commands:
+npm run start_3
+npm run start_4
+npm run start_5
+
+npm run start_v_3
+npm run start_v_4
+npm run start_v_5

@@ -2,5 +2,6 @@
     "paginaBuscaImoveis": "https://venda-imoveis.caixa.gov.br/sistema/busca-imovel.asp?sltTipoBusca=imoveis",
     "carregaListaCidades": "https://venda-imoveis.caixa.gov.br/sistema/carregaListaCidades.asp",
     "carregaListaBairros": "https://venda-imoveis.caixa.gov.br/sistema/carregaListaBairros.asp",
-    "carregaListaImoveis": "https://venda-imoveis.caixa.gov.br/sistema/carregaListaImoveis.asp"
+    "carregaListaImoveis": "https://venda-imoveis.caixa.gov.br/sistema/carregaListaImoveis.asp",
+    "detalheImovel": "https://venda-imoveis.caixa.gov.br/sistema/detalhe-imovel.asp"    
 }
